@@ -1,42 +1,24 @@
-import React from 'react';
 import {CKEditor} from '@ckeditor/ckeditor5-react';
-import {Alignment,Autoformat,BlockQuote,Bold,Essentials,Heading,Image,ImageResize,ImageToolbar,ImageUpload,Indent,Italic,Link,List,Paragraph,Table,TableToolbar,Underline,Undo,ClassicEditor,Plugin} from 'ckeditor5';
+import {ClassicEditor,Essentials,Paragraph,Heading,Bold,Italic,Underline,Link,List,BlockQuote,Table,TableToolbar,HorizontalLine,GeneralHtmlSupport} from 'ckeditor5';
 import 'ckeditor5/ckeditor5.css';
-import {api} from '../api.js';
-
-class MediaUploadAdapter {
- constructor(loader){this.loader=loader;this.controller=new AbortController()}
- async upload(){
-  const file=await this.loader.file;
-  const form=new FormData();
-  form.append('file',file);
-  const media=await api('/admin/media/upload',{method:'POST',body:form,signal:this.controller.signal});
-  return {default:media.url};
- }
- abort(){this.controller.abort()}
-}
-
-class MediaUploadPlugin extends Plugin {
- static get requires(){return [ImageUpload]}
- init(){this.editor.plugins.get('FileRepository').createUploadAdapter=loader=>new MediaUploadAdapter(loader)}
-}
 
 const config={
- licenseKey:'GPL',
- plugins:[Alignment,Autoformat,BlockQuote,Bold,Essentials,Heading,Image,ImageResize,ImageToolbar,ImageUpload,Indent,Italic,Link,List,Paragraph,Table,TableToolbar,Underline,Undo,MediaUploadPlugin],
- toolbar:['undo','redo','|','heading','|','bold','italic','underline','link','|','bulletedList','numberedList','outdent','indent','|','alignment','blockQuote','insertTable','uploadImage'],
- image:{upload:{types:['jpeg','png','webp']},toolbar:['imageTextAlternative','toggleImageCaption','imageStyle:inline','imageStyle:block','imageStyle:side','resizeImage']},
- table:{contentToolbar:['tableColumn','tableRow','mergeTableCells']},
+  licenseKey:'GPL',
+  plugins:[Essentials,Paragraph,Heading,Bold,Italic,Underline,Link,List,BlockQuote,Table,TableToolbar,HorizontalLine,GeneralHtmlSupport],
+  toolbar:['heading','|','bold','italic','underline','|','link','bulletedList','numberedList','blockQuote','insertTable','horizontalLine','|','undo','redo'],
+  heading:{options:[
+    {model:'paragraph',title:'Paragraph',class:'ck-heading_paragraph'},
+    {model:'heading1',view:'h1',title:'Heading 1',class:'ck-heading_heading1'},
+    {model:'heading2',view:'h2',title:'Heading 2',class:'ck-heading_heading2'},
+    {model:'heading3',view:'h3',title:'Heading 3',class:'ck-heading_heading3'},
+    {model:'heading4',view:'h4',title:'Heading 4',class:'ck-heading_heading4'}
+  ]},
+  table:{contentToolbar:['tableColumn','tableRow','mergeTableCells']},
+  htmlSupport:{allow:[{name:/^(p|h[1-4]|ul|ol|li|blockquote|a|hr|figure|table|thead|tbody|tr|td|th)$/,attributes:true,classes:true,styles:true}]}
 };
 
-export default function RichTextEditor({id,value,onChange}){
- return <div className="rich-text-editor">
-  <CKEditor
-   id={id}
-   editor={ClassicEditor}
-   config={config}
-   data={value||''}
-   onChange={(_event,editor)=>onChange(editor.getData())}
-  />
- </div>;
+export default function RichTextEditor({data,onChange}){
+  return <div className="content-rich-editor">
+    <CKEditor editor={ClassicEditor} data={data} config={config} onChange={(_event,editor)=>onChange(editor.getData())}/>
+  </div>;
 }

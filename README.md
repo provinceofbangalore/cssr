@@ -2,6 +2,14 @@
 
 **Full source project:** React 18 + Vite + Bootstrap 5, Node.js + Express, Prisma ORM + MySQL. Public website and secure admin CMS.
 
+## November 2026 website revisions
+
+- Header uses the exact newly supplied CSSR emblem (`client/public/assets/images/cssr-official-emblem.png`). Both the frontend fallback and `logoUrl` CMS setting are updated. Rerun `npm run db:seed` after updating an existing install to switch the saved logo reference; the CMS can later override the logo in Settings.
+- Paragraph and readable interface copy is set to a consistent 14px; headings retain their proper hierarchy. Homepage sections now have more generous vertical spacing.
+- Footer rewritten using a responsive grid. Bottom row contains horizontal navigation and **Developed & maintain by SheStrong Technology Services** with a direct link to https://shestrong.in.
+- Five **verified Bangalore Province news items** are provided in `client/src/verified-news.json` and seeded as published blog records. Short summaries are editorially rewritten, with direct links to the full original reports at `cssr.news`. The pictures are **illustrative from the existing design**, not authenticated photography of the cited events. Replace them with permission-cleared photos from the events before public launch.
+- Seed routine adds missing news records without overwriting existing posts/edits. The frontend displays the same source-verified stories when the API is unreachable for a design preview.
+
 ## What's implemented
 
 - Homepage faithful to supplied design: top stripe, logo and dropdown navigation, slideshow, ministry cards, mission highlight, steps, community stories and footer.
@@ -9,11 +17,10 @@
 - Admin login and dashboard with **real database statistics and visitor charts**.
 - Admin management of pages, blogs, menus, banners, media, users, roles, permissions, messages and settings.
 - Edit/create screens use a **60%-width offcanvas drawer on desktop**, Bootstrap validation, toast notifications and delete-confirmation dialogs.
-- Pages and blogs have a CKEditor 5 rich-text editor with authenticated image uploads, plus language-specific content for English, Hindi and Kannada; English is used as fallback until translations are supplied.
+- Page and blog bodies use a CKEditor 5 rich-text editor with a GPL license key. Ensure the project is distributed under compatible terms or use a commercial CKEditor license key.
+- Pages and blogs have language-specific content for English, Hindi and Kannada; English is used as fallback until translations are supplied.
 - Server-side RBAC, hashed passwords, HTTP-only JWT cookie, CSRF and origin checks, login rate limits, audit trail, upload validation, Zod validation and HTML sanitization.
 - Seed data imports **complete user-provided text** for History, What We Do, Saints, prayers and Join Us from the earlier design package.
-
-CKEditor 5 is configured under its GPL license; deployments must comply with CKEditor's GPL terms.
 
 ## Requirements
 
@@ -41,6 +48,7 @@ cp server/.env.example server/.env
 # Also set CLIENT_ORIGIN=http://localhost:5173 and COOKIE_SECURE=false in local development.
 
 # 4. Generate Prisma client and create MySQL tables
+# npm install generates Prisma Client automatically; this command can be rerun if needed.
 npm run db:generate
 npm run db:push
 

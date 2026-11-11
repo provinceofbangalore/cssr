@@ -21,7 +21,7 @@ app.disable('x-powered-by');app.set('trust proxy',prod?1:false);
 app.use(helmet({crossOriginResourcePolicy:{policy:'cross-origin'},contentSecurityPolicy:false}));
 app.use(cors({origin:process.env.CLIENT_ORIGIN||'http://localhost:5173',credentials:true}));
 app.use(express.json({limit:'1mb'}));app.use(cookieParser());
-const safeBody=sanitize=>sanitizeHtml(sanitize||'',{allowedTags:['p','br','h1','h2','h3','h4','strong','em','b','i','ul','ol','li','blockquote','a','hr','table','thead','tbody','tr','td','th','figure','figcaption','img'],allowedAttributes:{a:['href','target','rel'],figure:['class','style'],img:['src','alt','width','height']},allowedClasses:{figure:['image','image-style-side','image_resized']},allowedStyles:{figure:{width:[/^\d+(?:\.\d+)?%$/]}},allowedSchemes:['http','https','mailto']});
+const safeBody=sanitize=>sanitizeHtml(sanitize||'',{allowedTags:['p','br','h1','h2','h3','h4','strong','em','b','i','u','ul','ol','li','blockquote','a','hr','table','thead','tbody','tr','td','th'],allowedAttributes:{a:['href','target','rel']},allowedSchemes:['http','https','mailto']});
 const originCheck=(req,res,next)=>{if(['POST','PUT','PATCH','DELETE'].includes(req.method)&&req.headers.origin&&req.headers.origin!==process.env.CLIENT_ORIGIN){return res.status(403).json({error:'Origin not allowed'})}next()};
 app.use(originCheck);
 const loginLimiter=rateLimit({windowMs:15*60*1000,limit:15,standardHeaders:'draft-7',legacyHeaders:false});
@@ -42,7 +42,15 @@ const fmt=(item,lang)=>({...item,...tr(item,lang),translations:undefined});
 const menuTree=(items,parent=null,seen=new Set())=>items.filter(x=>(x.parentId||null)===parent&&!seen.has(x.id)).sort((a,b)=>a.sortOrder-b.sortOrder).map(x=>({...x,children:menuTree(items,x.id,new Set([...seen,x.id]))}));
 const getSettings=async()=>Object.fromEntries((await db.siteSetting.findMany()).map(x=>[x.key,x.value]));
 async function audit(req,action,entity,entityId){await db.auditLog.create({data:{userId:req.user.id,action,entity,entityId:String(entityId||'')}})}
-app.get('/api/health',(_req,res)=>res.json({ok:true,service:'cssr-api'}));
+app.get('/api/health',async(_req,res)=>{
+  try{
+    await db.$queryRaw`SELECT 1`;
+    res.json({ok:true,service:'cssr-api',database:'connected'});
+  }catch(error){
+    console.error('Database health check failed:',error);
+    res.status(503).json({ok:false,service:'cssr-api',database:'unavailable'});
+  }
+});
 app.get('/api/auth/csrf',(_req,res)=>{const key=crypto.randomBytes(32).toString('hex');res.cookie('cssr_csrf',key,{httpOnly:false,sameSite:'lax',secure:prod||process.env.COOKIE_SECURE==='true',path:'/'}).json({csrf:key})});
 app.post('/api/auth/login',loginLimiter,asyncRoute(async(req,res)=>{
   const {email,password}=z.object({email:z.string().email(),password:z.string().min(1)}).parse(req.body);
@@ -80,7 +88,8 @@ function normalize(resName,raw){const d={...raw};delete d.id;delete d.createdAt;
   return obj;
 }
 app.get('/api/admin/:resource',...protect,asyncRoute(async(req,res)=>{const {resource}=req.params,r=collection[resource];if(!r)return res.status(404).json({error:'Unknown resource'});if(!req.perms.has(r.read))return res.status(403).json({error:'Insufficient permission'});
-  let data=await db[r.model].findMany({...(r.include?{include:r.include}:{}),...(resource==='users'?{select:userSelect}:{}),...(resource==='roles'?{include:roleInclude}:{}),...(!['permissions','settings','roles','users'].includes(resource)?{orderBy:['blogs','inquiries','media'].includes(resource)?{createdAt:'desc'}:{sortOrder:'asc'}}:{})});
+  const orderByField=resource==='inquiries'||resource==='media'?'createdAt':resource==='pages'?'sortOrder':resource==='blogs'?'createdAt':'sortOrder';
+  let data=await db[r.model].findMany({...(r.include?{include:r.include}:{}),...(resource==='users'?{select:userSelect}:{}),...(resource==='roles'?{include:roleInclude}:{}),...(!['permissions','settings','roles','users'].includes(resource)?{orderBy:{[orderByField]:'asc'}}:{})});
   res.json(data);
 }));
 app.post('/api/admin/:resource',...protect,asyncRoute(async(req,res)=>{const {resource}=req.params,r=collection[resource];if(!r)return res.status(404).json({error:'Unknown resource'});if(!req.perms.has(r.write))return res.status(403).json({error:'Insufficient permission'});

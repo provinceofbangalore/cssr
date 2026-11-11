@@ -53,9 +53,15 @@ async function main(){
     const child=[['About','Vision & Mission','/about/vision-mission'],['About','What We Do','/about/what-we-do'],['About','History','/about/history'],['Saints & Blesseds','St. Alphonsus Liguori','/saints/st-alphonsus'],['Saints & Blesseds','St. Gerard Majella','/saints/st-gerard'],['Saints & Blesseds','St. Clement Hofbauer','/saints/st-clement'],['Saints & Blesseds','St. John Neumann','/saints/st-john-neumann'],['Saints & Blesseds','Blesseds','/saints/blesseds'],['Prayer',"St. Alphonsus’ Meditation",'/prayer/st-alphonsus-meditation'],['Prayer',"Saint Gerard’s Story",'/prayer/st-gerards-story'],['Prayer','Mother of Perpetual Help','/prayer/mother-of-perpetual-help']];
     for(let i=0;i<child.length;i++){let [p,label,href]=child[i];await db.menuItem.create({data:{parentId:ids[p],label,href,sortOrder:i*10}});}
   }
-  const settings={brandName:'CSSR.IN',tagline:'Redemptorists Bangalore Province',email:'',phone:'',address:'Bengaluru, Karnataka, India',logoUrl:'/assets/images/cssr-logo.png',mapEmbedUrl:'',footerText:'A community of faith. A mission of hope.',defaultLanguage:'en',enabledLanguages:'en,hi,kn'};
-  for(const [key,value] of Object.entries(settings))await db.siteSetting.upsert({where:{key},create:{key,value},update:{}});
+  const settings={brandName:'CSSR.IN',tagline:'Redemptorists Bangalore Province',email:'',phone:'',address:'Bengaluru, Karnataka, India',logoUrl:'/assets/images/cssr-official-emblem.png',mapEmbedUrl:'',footerText:'A community of faith. A mission of hope.',defaultLanguage:'en',enabledLanguages:'en,hi,kn'};
+  for(const [key,value] of Object.entries(settings))await db.siteSetting.upsert({where:{key},create:{key,value},update:key==='logoUrl'?{value}:{}});
   if((await db.homeSlide.count())===0){await db.homeSlide.create({data:{title:'A community of faith.\nA mission of hope.',subtitle:'Discover the missions, communities and people of the Redemptorists Bangalore Province.',imageUrl:'/assets/images/hero-mockup-matched.jpg',sortOrder:0}});await db.homeSlide.create({data:{title:'Rooted in community.\nConnected in mission.',subtitle:'Proclaiming the Good News with compassion, prayer, and service.',imageUrl:'/assets/images/community-original.jpg',sortOrder:1}});}
-  console.log(`Seeded ${content.length} pages, ${menus.length} main menus, permissions and admin account.`);
+  // Credited articles based on actual reports, not invented sample stories.
+  // Existing articles are never overwritten by rerunning the seed.
+  const verifiedNews=JSON.parse(readFileSync(new URL('../../client/src/verified-news.json',import.meta.url),'utf8'));
+  for(const item of verifiedNews){
+    await db.blog.upsert({where:{slug:item.slug},update:{},create:{slug:item.slug,category:item.category,status:'PUBLISHED',publishedAt:new Date(item.publishedAt),imageUrl:item.imageUrl,translations:{create:{locale:'en',title:item.title,excerpt:item.excerpt,body:item.body}}}});
+  }
+  console.log(`Seeded ${content.length} pages, ${menus.length} main menus, verified news stories, permissions and admin account.`);
 }
 main().catch(e=>{console.error(e);process.exitCode=1}).finally(async()=>db.$disconnect());

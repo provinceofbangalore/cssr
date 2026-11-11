@@ -1,7 +1,7 @@
 {
   "name": "cssr-in-react-cms",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "workspaces": [
     "client",
     "server"
@@ -10,15 +10,12 @@
     "dev": "concurrently -n WEB,API -c cyan,green \"npm run dev -w client\" \"npm run dev -w server\"",
     "build": "npm run build -w client",
     "start": "npm run start -w server",
+    "postinstall": "npm run db:generate",
     "db:generate": "npm run db:generate -w server",
     "db:push": "npm run db:push -w server",
     "db:seed": "npm run db:seed -w server"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
-  },
-  "dependencies": {
-    "dotenv": "^18.0.10",
-    "pg": "^8.23.1"
   }
 }
