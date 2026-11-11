@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  passwordHash String
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  roles UserRole[]
+  audits AuditLog[]
+}
+model Role {
+  id String @id @default(cuid())
+  name String @unique
+  description String? @db.Text
+  users UserRole[]
+  permissions RolePermission[]
+}
+model Permission {
+  id String @id @default(cuid())
+  key String @unique
+  description String?
+  roles RolePermission[]
+}
+model UserRole {
+  userId String
+  roleId String
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  role Role @relation(fields:[roleId],references:[id],onDelete:Cascade)
+  @@id([userId,roleId])
+}
+model RolePermission {
+  roleId String
+  permissionId String
+  role Role @relation(fields:[roleId],references:[id],onDelete:Cascade)
+  permission Permission @relation(fields:[permissionId],references:[id],onDelete:Cascade)
+  @@id([roleId,permissionId])
+}
+model Page {
+  id String @id @default(cuid())
+  slug String @unique
+  section String @default("General")
+  status String @default("DRAFT")
+  imageUrl String? @db.Text
+  sortOrder Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  translations PageTranslation[]
+}
+model PageTranslation {
+  id String @id @default(cuid())
+  pageId String
+  locale String @default("en")
+  title String
+  summary String? @db.Text
+  body String @db.LongText
+  page Page @relation(fields:[pageId],references:[id],onDelete:Cascade)
+  @@unique([pageId,locale])
+}
+model Blog {
+  id String @id @default(cuid())
+  slug String @unique
+  category String @default("Community")
+  status String @default("DRAFT")
+  imageUrl String? @db.Text
+  publishedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  translations BlogTranslation[]
+}
+model BlogTranslation {
+  id String @id @default(cuid())
+  blogId String
+  locale String @default("en")
+  title String
+  excerpt String? @db.Text
+  body String @db.LongText
+  blog Blog @relation(fields:[blogId],references:[id],onDelete:Cascade)
+  @@unique([blogId,locale])
+}
+model MenuItem {
+  id String @id @default(cuid())
+  label String
+  href String
+  parentId String?
+  parent MenuItem? @relation("MenuTree",fields:[parentId],references:[id],onDelete:SetNull)
+  children MenuItem[] @relation("MenuTree")
+  sortOrder Int @default(0)
+  visible Boolean @default(true)
+}
+model HomeSlide {
+  id String @id @default(cuid())
+  title String
+  subtitle String @db.Text
+  imageUrl String @db.Text
+  buttonText String @default("Explore our mission")
+  buttonHref String @default("/about/what-we-do")
+  sortOrder Int @default(0)
+  active Boolean @default(true)
+}
+model SiteSetting {
+  key String @id
+  value String @db.LongText
+}
+model Inquiry {
+  id String @id @default(cuid())
+  name String
+  email String
+  subject String
+  message String @db.Text
+  status String @default("NEW")
+  createdAt DateTime @default(now())
+}
+model Media {
+  id String @id @default(cuid())
+  filename String
+  url String
+  mime String
+  size Int
+  createdAt DateTime @default(now())
+}
+model AuditLog {
+  id String @id @default(cuid())
+  userId String?
+  user User? @relation(fields:[userId],references:[id],onDelete:SetNull)
+  action String
+  entity String
+  entityId String?
+  createdAt DateTime @default(now())
+}
+model DailyVisit {
+  date DateTime @id @db.Date
+  views Int @default(0)
+}

@@ -1,0 +1,27 @@
+CSSR.IN — FULL REACT + MYSQL + PRISMA CMS PROJECT
+================================================
+
+1) Extract this ZIP into a local folder.
+2) Install Node.js 22+ and MySQL 8+ on your Mac/PC.
+3) In Terminal, open the extracted project folder.
+4) Run: npm install
+5) Create a MySQL database named cssr_cms and a dedicated user.
+6) Copy server/.env.example to server/.env.
+   Set DATABASE_URL, JWT_SECRET, ADMIN_EMAIL and ADMIN_PASSWORD.
+   Use a password of 12+ characters and a fresh random JWT secret.
+7) Run: npm run db:generate
+8) Run: npm run db:push
+9) Run: npm run db:seed
+10) Run: npm run dev
+
+Open the website: http://localhost:5173
+Open the admin:   http://localhost:5173/admin/login
+
+Read README.md for exact commands, hosting, permissions, and content notes.
+
+IMPORTANT: Source code is provided. The runtime requires npm dependencies and
+MySQL; the ZIP does not include installed node_modules or a live database.
+
+Content files for History, Saints, Prayer, What We Do and Join Us are included.
+Unverified pages (Vision & Mission, Parish, Communities, Donation, Blesseds)
+start as drafts for editorial approval.

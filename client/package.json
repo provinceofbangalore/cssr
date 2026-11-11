@@ -1,0 +1,28 @@
+{
+  "name": "cssr-web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@ckeditor/ckeditor5-react": "^12.0.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.11.3",
+    "ckeditor5": "^49.1.0",
+    "dompurify": "^3.2.6",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.5.1",
+    "react-router-dom": "^6.28.2",
+    "recharts": "^2.15.1"
+  },
+  "devDependencies": {
+    "vite": "^6.1.0"
+  }
+}
